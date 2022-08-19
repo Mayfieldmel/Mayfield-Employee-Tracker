@@ -74,7 +74,7 @@ function showOptions() {
 
 showOptions();
 
-// connect to database
+// check database connection
 db.connect(err => {
   if (err) throw err;
   console.log(`Connected to the employee database.`);
