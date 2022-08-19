@@ -5,6 +5,18 @@ const db = require("./db/connection");
 // const promptUser = require("./lib/questions");
 require("console.table");
 
+
+// show all queries
+function ShowAllQuery(choice) {
+  db.query(`SELECT * FROM ${choice}`, (err, results) => {
+    if (err) {
+      console.log(err);
+    }
+    console.table(results);
+    promptUser();
+  })
+}
+
 // initialize app
 startApp();
 promptUser();
@@ -22,72 +34,42 @@ function promptUser() {
             type: "list",
             name: "choice",
             message: "What would you like to do?",
-            choices: ["View", "Add ", "Update", "Remove", "Quit"],
+            choices: ["View All Departments", "View All Roles", "View All Employees", "Add a Department", "Add a Role", "Add an Employee", "Update an Employee Role", "Quit"],
           })
         .then(({ choice }) => {
-        switch (choice) {
-            case "View":
-            promptView();
-            break;
-            case "Add":
-            promptAdd()
-            break;
-            case "Update":
-            promptUpdate()
-            break;
-            case "Remove":
-            promptRemove()
-            break;
-            default:
+          if (choice == "View All Departments") {
+            let table = 'department';
+            ShowAllQuery(table);
+          }
+          if (choice == "View All Roles") {
+            let table = 'role';
+            ShowAllQuery(table);
+          }
+          if (choice == "View All Employees") {
+            let table = 'employee';
+            ShowAllQuery(table);
+          }
+          if (choice == "Add a Department") {
+
+          }
+          if (choice == "Add a Role") {
+
+          }
+          if (choice == "Add an Employee") {
+
+          }
+          if (choice == "Update an Employee Role") {
+
+          }
+          if (choice == "Quit") {
             process.exit();
-        }
+          }
         });
     }
 
-// view options
-function promptView() {
-    inquirer
-    .prompt({
-        type: "list",
-        name: "choice",
-        message: "What would you like to view?",
-        choices: ["All Employees", "All roles", "All departments", "Go Back"],
-      })
-      .then(choice => {return choice})
-    }
 
-// add options
-function promptAdd() {
-    inquirer
-    .prompt({
-        type: "list",
-        name: "choice",
-        message: "What would you like to add?",
-        choices: ["Employee", "Role", "Department", "Go Back"],
-      })
-}
 
-// update options
-function promptUpdate() {
-    inquirer
-    .prompt({
-        type: "list",
-        name: "choice",
-        message: "What would you like to update?",
-        choices: ["Employee", "Role", "Department", "Go Back"],
-      })
-}
 
-// remove options
-function promptRemove() {
-    inquirer
-    .prompt({
-        type: "list",
-        name: "choice",
-        message: "What would you like to remove?",
-        choices: ["Employee", "Role", "Department", "Go Back"]
-      })
-}
 
 
 
