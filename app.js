@@ -2,6 +2,7 @@
 const inquirer = require("inquirer");
 const mysql = require("mysql2");
 require("console.table");
+const db = require("./db/connection")
 
 
 
@@ -72,3 +73,10 @@ function showOptions() {
 }
 
 showOptions();
+
+// connect to database
+db.connect(err => {
+  if (err) throw err;
+  console.log(`Connected to the employee database.`);
+});
+
