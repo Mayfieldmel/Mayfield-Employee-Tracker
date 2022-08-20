@@ -5,18 +5,6 @@ const db = require("./db/connection");
 // const promptUser = require("./lib/questions");
 require("console.table");
 
-
-// show all queries
-function ShowAllQuery(choice) {
-  db.query(`SELECT * FROM ${choice}`, (err, results) => {
-    if (err) {
-      console.log(err);
-    }
-    console.table(results);
-    promptUser();
-  })
-}
-
 // initialize app
 startApp();
 promptUser();
@@ -38,16 +26,31 @@ function promptUser() {
           })
         .then(({ choice }) => {
           if (choice == "View All Departments") {
-            let table = 'department';
-            ShowAllQuery(table);
+            db.query(`SELECT * FROM department`, (err, results) => {
+              if (err) {
+                console.log(err);
+              }
+              console.table(results);
+              promptUser();
+            })
           }
           if (choice == "View All Roles") {
-            let table = 'role';
-            ShowAllQuery(table);
+            db.query(`SELECT * FROM department`, (err, results) => {
+              if (err) {
+                console.log(err);
+              }
+              console.table(results);
+              promptUser();
+            })
           }
           if (choice == "View All Employees") {
-            let table = 'employee';
-            ShowAllQuery(table);
+            db.query(`SELECT * FROM department`, (err, results) => {
+              if (err) {
+                console.log(err);
+              }
+              console.table(results);
+              promptUser();
+            })
           }
           if (choice == "Add a Department") {
 
