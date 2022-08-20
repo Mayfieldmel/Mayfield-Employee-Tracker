@@ -2,6 +2,8 @@
 const inquirer = require("inquirer");
 const mysql = require("mysql2");
 const db = require("./db/connection");
+const questions = require("./lib/questions");
+
 // const promptUser = require("./lib/questions");
 require("console.table");
 
@@ -18,12 +20,7 @@ function startApp() {
 // initial prompt
 function promptUser() {
     inquirer
-        .prompt({
-            type: "list",
-            name: "choice",
-            message: "What would you like to do?",
-            choices: ["View All Departments", "View All Roles", "View All Employees", "Add a Department", "Add a Role", "Add an Employee", "Update an Employee Role", "Quit"],
-          })
+        .prompt(questions.promptUser)
         .then(({ choice }) => {
           if (choice == "View All Departments") {
             db.query(`SELECT * FROM department`, (err, results) => {
@@ -31,11 +28,11 @@ function promptUser() {
                 console.log(err);
               }
               console.table(results);
-              promptUser();
+              return promptUser();
             })
           }
           if (choice == "View All Roles") {
-            db.query(`SELECT * FROM department`, (err, results) => {
+            db.query(`SELECT * FROM role`, (err, results) => {
               if (err) {
                 console.log(err);
               }
@@ -44,7 +41,8 @@ function promptUser() {
             })
           }
           if (choice == "View All Employees") {
-            db.query(`SELECT * FROM department`, (err, results) => {
+            
+            db.query(`SELECT * FROM employee`, (err, results) => {
               if (err) {
                 console.log(err);
               }
@@ -53,7 +51,18 @@ function promptUser() {
             })
           }
           if (choice == "Add a Department") {
-
+            inquirer
+              .prompt(questions.promptAddDepartment)
+              .then((input) => {
+                const sql = `INSERT INTO department (name) VALUES (?)`;
+                db.query(sql, input.name, (err, results) => {
+                  if (err) {
+                    console.log(err);
+                  }
+                  console.log(`Added ${input.name} to database`)
+                  return promptUser();
+                })
+              })
           }
           if (choice == "Add a Role") {
 
