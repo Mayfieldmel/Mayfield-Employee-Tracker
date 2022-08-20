@@ -32,7 +32,10 @@ function promptUser() {
             })
           }
           if (choice == "View All Roles") {
-            db.query(`SELECT * FROM role`, (err, results) => {
+            const sql = `SELECT role.id, role.title, department.name AS department, role.salary 
+                         FROM role
+                         LEFT JOIN department ON role.department_id = department.id`
+            db.query(sql, (err, results) => {
               if (err) {
                 console.log(err);
               }
