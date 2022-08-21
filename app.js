@@ -3,10 +3,8 @@ const inquirer = require("inquirer");
 const mysql = require("mysql2");
 
 const db = require("./db/connection");
-const questions = require("./lib/questions");
 const roleLib = require("./lib/Role");
 
-// const promptUser = require("./lib/questions");
 require("console.table");
 
 // initialize app
@@ -330,6 +328,8 @@ function updateEmployeeRole() {
       })  
     })
 }
+
+
 // function deleteEmployee() {
 //   db.query("SELECT * FROM employee", function (err, results) {
 //     const choices = results.map(({ id, first_name, last_name }) => {
