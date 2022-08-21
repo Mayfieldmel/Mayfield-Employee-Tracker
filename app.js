@@ -20,6 +20,7 @@ function startApp() {
 };   
 
 var newRole = {};
+var newEmployee = {};
 
 // initial prompt
 function promptUser() {
@@ -42,7 +43,10 @@ function promptUser() {
             addRole();
           }
           if (choice == "Add an Employee") {
-
+            return new Promise ((resolve) => {
+              addEmployee();
+            })
+            .then(() => callback())
           }
           if (choice == "Update an Employee Role") {
 
@@ -96,7 +100,7 @@ function addRole() {
       if (err) {
         console.log(err);
       }
-      const rolesArr = results.map((results) => {
+      const departmentArr = results.map((results) => {
         const {name} = results;
         return `${name}`;       
     })
@@ -112,7 +116,7 @@ function addRole() {
       type: "list",
       name: "department",
       message: "Which department does the role belong to?",
-      choices: rolesArr
+      choices: departmentArr
     })
     .then(choice => {
       const sql = `SELECT * FROM department WHERE name = ?`;
@@ -141,7 +145,13 @@ function addRole() {
 
 // employee table functions
 function showAllEmployees() {
-  db.query(`SELECT * FROM employee`, (err, results) => {
+  const sql = `SELECT e.id, e.first_name, e.last_name, role.title, department.name AS department, role.salary
+  FROM employee e
+  LEFT JOIN role ON role_id = role.id
+  LEFT JOIN department ON department_id = department.id`
+  // ,  m.first_name || ' ' || m.last_name AS manager
+  // LEFT JOIN employee m ON e.manager_id = m.employee.id`
+  db.query(sql, (err, results) => {
     if (err) {
       console.log(err);
     }
@@ -149,39 +159,101 @@ function showAllEmployees() {
     promptUser();
   })
 }
-// db.query(`SELECT * FROM department`, (err, results) => {
-          //         if (err) {
-          //           console.log(err);
-          //         }
-          //         const rolesArr = results.map((results) => {
-          //           const {name} = results;
-          //           return `${name}`;       
-          //       })
-          //         console.log(rolesArr)
-                 
-                // inquirer
-                //   .prompt({
-                //     type: "list",
-                //     name: "roles",
-                //     message: "Which department does the role belong to?",
-                //     choices: rolesArr
-                //   })
-                //   .then((choice) => {
-                //     console.log(choice)
-                //     newRole.department_id = choice;
-                //     console.log(newRole)
-                    
-                    // const sql = `INSERT INTO role (title, department_id) VALUES (?)`;
-                    // db.query(sql, input.name, (err, results) => {
-                    //   if (err) {
-                    //     console.log(err);
-                    //   }
-                    //   console.log(`Added ${input.name} to database`)
-                    //   return promptUser();
-                    // })
+function addEmployee() {
+  db.query(`SELECT employee.*, role.title FROM employee LEFT JOIN role ON role_id = role.id`, (err, results) => {
+    if (err) {
+      console.log(err);
+    }
+    const rolesArr = results.map((results) => {
+      const {title} = results;
+      return `${title}`;       
+  })
+    const mFirstName = results.map((results) => {
+      const {first_name} = results;
+      return `${first_name}`; 
+    })
+    const mLastName = results.map((results) => {
+      const {last_name} = results;
+      return `${last_name}`; 
+    })
+    const managerArr = mFirstName.map((a, index) => {
+        const b = mLastName[index];
+        return `${a} ${b}`
+    })
+  return inquirer
+  .prompt(questions.promptAddEmployee)
+  .then((input) => { 
+    newEmployee.first_name = input.first_name;
+    newEmployee.last_name = input.last_name;
+  })
+  .then(() => {
+    return inquirer
+    .prompt([
+      {
+      type: "list",
+      name: "role",
+      message: "What is the employee's role?",
+      choices: rolesArr
+    },
+      {
+      type: "list",
+      name: "manager",
+      message: "Who is the employee's manager?",
+      choices: managerArr
+    }
+  ])
+  .then(choice => {
+    const sql = `SELECT * FROM role WHERE title = ?`;
+    const params = [`${choice.role}`];
+    db.query(sql, params, (err, results) => {
+        if (err) {
+          console.log(err);
+        }
+        newEmployee.role_id = results[0].id;
+      })
+      const sql2 = `SELECT * FROM employee WHERE first_name = ? AND last_name = ?`;
+      const params2 = choice.manager.split(" ");
+      db.query(sql2, params2, (err, results) => {
+          if (err) {
+            console.log(err);
+          }
+          newEmployee.manager_id = results[0].id;
+          console.log(newEmployee);
+          return newEmployee;
+        })
+        
+    })
+    // .then((employee) => {
+    //   console.log("employee:" + employee);
+    //   const {first_name, last_name, role_id, manager_id} = employee;
+    //   const sql3 = `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?,?,?,?)`;
+    //   const params3 = [first_name, last_name, role_id, manager_id]
+    //   console.log(params3)
+    //     db.query(sql3, params3, (err, results) => {
+    //       if (err) {
+    //         console.log(err);
+    //       }
+    //       console.log(`Added role to database`)
+    //       return promptUser();
+    //     })
+    // })
+   
+  })
+})
+}
 
-
-
+function callback() {console.log("employee:" + newEmployee)};
+      // const {first_name, last_name, role_id, manager_id} = employee;
+      // const sql3 = `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?,?,?,?)`;
+      // const params3 = [first_name, last_name, role_id, manager_id]
+      // console.log(params3)
+      //   db.query(sql3, params3, (err, results) => {
+      //     if (err) {
+      //       console.log(err);
+      //     }
+      //     console.log(`Added role to database`)
+      //     return promptUser();
+      //   })
 // function deleteEmployee() {
 //   db.query("SELECT * FROM employee", function (err, results) {
 //     const choices = results.map(({ id, first_name, last_name }) => {
