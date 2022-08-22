@@ -187,8 +187,9 @@ function showAllEmployees() {
 // add employee to db
 function addEmployee() {
   var rolesArr = [];
+  const sql = `SELECT employee.first_name AS a, employee.last_name AS b FROM employee UNION ALL SELECT role.title, role.id FROM role`
   // query to form choices list
-  db.query(`SELECT employee.first_name AS a, employee.last_name AS b FROM employee UNION ALL SELECT role.title, role.id FROM role`, (err, results) => {
+  db.query(sql, (err, results) => {
     if (err) {
       console.log(err);
     }
@@ -298,28 +299,35 @@ function addEmployee() {
 // update employee's role
 function updateEmployeeRole() {
   // query to form choices list
-  const sql = `SELECT employee.id, employee.first_name, employee.last_name, role.title
-  FROM employee 
-  LEFT JOIN role ON role_id = role.id`;
+  var rolesArr = [];
+  const sql =`SELECT employee.first_name AS a, employee.last_name AS b FROM employee UNION ALL SELECT role.title, role.id FROM role`;
+  // query to form choices list
   db.query(sql, (err, results) => {
     if (err) {
       console.log(err);
     }
-    const rolesArr = results.map((results) => {
-      const {title} = results;
-      return `${title}`;       
+   const namesArr = results.filter(index => {
+    if (isNaN(index.b)) {
+        return index;
+    } else {
+        rolesArr.push(index);
+    }
+   })
+    rolesArr = rolesArr.map((results) => {
+      const {a} = results;
+      return `${a}`;       
   })
-    const eFirstName = results.map((results) => {
-      const {first_name} = results;
-      return `${first_name}`; 
+    const mFirstName = namesArr.map((results) => {
+      const {a} = results;
+      return `${a}`; 
     })
-    const eLastName = results.map((results) => {
-      const {last_name} = results;
-      return `${last_name}`; 
+    const mLastName = namesArr.map((results) => {
+      const {b} = results;
+      return `${b}`; 
     })
-    const employeeArr = eFirstName.map((a, index) => {
-      const b = eLastName[index];
-      return `${a} ${b}`
+   employeeArr = mFirstName.map((a, index) => {
+        const b = mLastName[index];
+        return `${a} ${b}`
     })
     // prompt user
     return inquirer
@@ -362,9 +370,9 @@ function updateEmployeeRole() {
               if (err) {
                 console.log(err);
               }
-              console.log('---------------------------------------');
-              console.log(`Added ${role_id} to employees database`)
-              console.log('---------------------------------------');
+              console.log('-------------------------------------------------------------------');
+              console.log(`Updated ${employee[0]} ${employee[1]}'s role in employees database`)
+              console.log('-------------------------------------------------------------------');
               return promptUser();
             })
           })
