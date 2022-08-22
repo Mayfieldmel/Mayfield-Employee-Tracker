@@ -3,7 +3,8 @@ const inquirer = require("inquirer");
 const mysql = require("mysql2");
 
 const db = require("./db/connection");
-const roleLib = require("./lib/Role");
+// const roleLib = require("./lib/Role");
+// const initialPrompt = require("./lib/Prompt");
 
 require("console.table");
 
@@ -34,7 +35,7 @@ function promptUser() {
             showAllDepartments();
           }
           if (choice == "View All Roles") {
-            roleLib.showAllRoles();
+            showAllRoles();
           }
           if (choice == "View All Employees") {
             showAllEmployees();           
@@ -52,12 +53,16 @@ function promptUser() {
             updateEmployeeRole();
           }
           if (choice == "Quit") {
+            console.log('--------');
+            console.log('GOODBYE!')
+            console.log('--------');
             process.exit();
           }
         });
     }
 
 // department table functions
+// view all departments in db
 function showAllDepartments() {
   db.query(`SELECT * FROM department`, (err, results) => {
     if (err) {
@@ -67,6 +72,7 @@ function showAllDepartments() {
     return promptUser();
   })
 }
+// add a department to db
 function addDepartment() {
   inquirer
     .prompt({
@@ -80,15 +86,18 @@ function addDepartment() {
         if (err) {
           console.log(err);
         }
+        console.log('-------------------------------');
         console.log(`Added ${input.name} to database`)
+        console.log('-------------------------------');
         return promptUser();
       })
     })
 }
 
  //  role table functions
+//  view all roles in db
 function showAllRoles(){
-  const sql = `SELECT role.id, role.title, department.name AS department, role.salary 
+  const sql = `SELECT role.id, role.title, department.name AS department, CONCAT('$', FORMAT(role.salary, 0)) AS salary
   FROM role
   LEFT JOIN department ON role.department_id = department.id`
   db.query(sql, (err, results) => {
@@ -99,7 +108,7 @@ function showAllRoles(){
       promptUser()
   })
 }
-
+// add role to db
 function addRole() {
   db.query(`SELECT * FROM department`, (err, results) => {
     if (err) {
@@ -131,7 +140,6 @@ function addRole() {
   .then((answers) => { 
     newRole.title = answers.title;
     newRole.salary = answers.salary;
-    console.log(newRole)
     const sql = `SELECT * FROM department WHERE name = ?`;
     const params = [`${answers.department}`];
     db.query(sql, params, (err, results) => {
@@ -139,7 +147,6 @@ function addRole() {
           console.log(err);
         }
         newRole.department_id = results[0].id;
-        console.log(newRole)
         const {title, salary, department_id} = newRole;
         const sql = `INSERT INTO role (title, salary, department_id) VALUES (?,?,?)`;
         const params = [title, salary, department_id]
@@ -147,7 +154,9 @@ function addRole() {
             if (err) {
               console.log(err);
             }
-            console.log(`Added role to database`)
+            console.log('------------------------------');
+            console.log(`Added ${title} to database`)
+            console.log('------------------------------');
             return promptUser();
           })
     })
@@ -157,8 +166,9 @@ function addRole() {
 
 
 // employee table functions
+// view all employees in db
 function showAllEmployees() {
-  const sql = `SELECT e.id, e.first_name, e.last_name, role.title, department.name AS department, role.salary, m.first_name || ' ' || m.last_name AS manager
+  const sql = `SELECT e.id, e.first_name, e.last_name, role.title, department.name AS department, CONCAT('$', FORMAT(role.salary, 0)) AS salary, CONCAT(m.first_name, " ", m.last_name) AS manager
   FROM employee e
   LEFT JOIN role ON role_id = role.id
   LEFT JOIN department ON department_id = department.id
@@ -171,23 +181,31 @@ function showAllEmployees() {
     promptUser();
   })
 }
-
+// add employee to db
 function addEmployee() {
-  db.query(`SELECT employee.*, role.title FROM employee LEFT JOIN role ON role_id = role.id`, (err, results) => {
+  var rolesArr = [];
+  db.query(`SELECT employee.first_name AS a, employee.last_name AS b FROM employee UNION ALL SELECT role.title, role.id FROM role`, (err, results) => {
     if (err) {
       console.log(err);
     }
-    const rolesArr = results.map((results) => {
-      const {title} = results;
-      return `${title}`;       
+   const namesArr = results.filter(index => {
+    if (isNaN(index.b)) {
+        return index;
+    } else {
+        rolesArr.push(index);
+    }
+   })
+    rolesArr = rolesArr.map((results) => {
+      const {a} = results;
+      return `${a}`;       
   })
-    const mFirstName = results.map((results) => {
-      const {first_name} = results;
-      return `${first_name}`; 
+    const mFirstName = namesArr.map((results) => {
+      const {a} = results;
+      return `${a}`; 
     })
-    const mLastName = results.map((results) => {
-      const {last_name} = results;
-      return `${last_name}`; 
+    const mLastName = namesArr.map((results) => {
+      const {b} = results;
+      return `${b}`; 
     })
    managerArr = mFirstName.map((a, index) => {
         const b = mLastName[index];
@@ -220,8 +238,7 @@ function addEmployee() {
     }
 ])
   .then((answers) => { 
-   
-
+    console.log(answers)
     newEmployee.first_name = answers.first_name;
     newEmployee.last_name = answers.last_name;
     const sql = `SELECT * FROM role WHERE title = ?`;
@@ -230,19 +247,34 @@ function addEmployee() {
         if (err) {
           console.log(err);
         }
+        console.log(results)
         newEmployee.role_id = results[0].id;
-      })
-
-      // if(answers.first_name == 'None') {
-      //   // return  or call next function
-      // }
+      
+      if(answers.manager == 'None') {
+        newEmployee.manager_id = null;
+        console.log(newEmployee)
+        const {first_name, last_name, role_id, manager_id} = newEmployee;
+        const sql3 = `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?,?,?,?)`;
+        const params3 = [first_name, last_name, role_id, manager_id]
+          db.query(sql3, params3, (err, results) => {
+            if (err) {
+              console.log(err);
+            }
+            console.log('----------------------------------------------------');
+            console.log(`Added ${first_name} ${last_name} to database`)
+            console.log('----------------------------------------------------');
+            return promptUser();
+          })
+      } else {
       const sql2 = `SELECT * FROM employee WHERE first_name = ? AND last_name = ?`;
       const params2 = answers.manager.split(" ");
+      console.log(params)
       db.query(sql2, params2, (err, results) => {
           if (err) {
             console.log(err);
           }
           newEmployee.manager_id = results[0].id;
+          console.log(newEmployee)
           const {first_name, last_name, role_id, manager_id} = newEmployee;
           const sql3 = `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?,?,?,?)`;
           const params3 = [first_name, last_name, role_id, manager_id]
@@ -250,14 +282,18 @@ function addEmployee() {
               if (err) {
                 console.log(err);
               }
-              console.log(`Added employee to database`)
+              console.log('----------------------------------------------------');
+              console.log(`Added ${first_name} ${last_name} to database`)
+              console.log('----------------------------------------------------');
               return promptUser();
             })
         })
+      }
+    })
     })
 })
 }
-
+// update employee's role
 function updateEmployeeRole() {
   const sql = `SELECT employee.id, employee.first_name, employee.last_name, role.title
   FROM employee 
@@ -270,7 +306,6 @@ function updateEmployeeRole() {
       const {title} = results;
       return `${title}`;       
   })
-    console.table(results)
     const eFirstName = results.map((results) => {
       const {first_name} = results;
       return `${first_name}`; 
@@ -299,7 +334,6 @@ function updateEmployeeRole() {
       },
     ]) 
     .then(choice => {
-      console.log(choice)
       var {employee, role} = choice;
       const sql = `SELECT * FROM role WHERE title = ?`;
       const params = [role];
@@ -311,21 +345,21 @@ function updateEmployeeRole() {
         employee = employee.split(" ")
         const sql2 = `SELECT id FROM employee WHERE first_name = ? AND last_name = ?`;
         const params2 = [employee[0], employee[1]]
-        console.log(params2)
           db.query(sql2, params2, (err, result) => {
             if (err) {
               console.log(err);
             }
           const id = result[0].id;
-          console.log(id)
           const sql3 = `UPDATE employee SET role_id = ? WHERE id = ?`;
           const params3 = [role_id, id]
-          console.log(params3)
+          
             db.query(sql3, params3, (err, results) => {
               if (err) {
                 console.log(err);
               }
-              console.log(`updated role added to database`)
+              console.log('-------------------------------');
+              console.log(`Added ${role_id} to database`)
+              console.log('-------------------------------');
               return promptUser();
             })
           })
@@ -333,50 +367,3 @@ function updateEmployeeRole() {
       })  
     })
 }
-
-
-// function deleteEmployee() {
-//   db.query("SELECT * FROM employee", function (err, results) {
-//     const choices = results.map(({ id, first_name, last_name }) => {
-//       return {
-//         name: `${first_name} ${last_name}`,
-//         value: id,
-//       };
-//     });
-
-//     inquirer
-//       .prompt([
-//         {
-//           type: "list",
-//           name: "employeeId",
-//           message: "Which employee would you like to remove?",
-//           choices: choices,
-//         },
-//       ])
-//       .then(({ employeeId }) => {
-//         db.query(
-//           `DELETE FROM employee WHERE id = ?`,
-//           employeeId,
-//           (err, result) => {
-//             if (err) {
-//               console.log(err);
-//             }
-//             console.log(result);
-//             showOptions();
-//           }
-//         );
-//       });
-//   });
-// }
-
-
-
-
-// check database connection
-// db.connect(err => {
-//   if (err) throw err;
-//   console.log(`Connected to the employee database.`);
-// });
-
-module.exports = promptUser;
-// export default promptUser;
