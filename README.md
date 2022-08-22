@@ -2,7 +2,7 @@
 
 This repo houses the code used to build the Mayfield Employee Tracker.
 
-![employee-tracker-demo](#))
+![employee-tracker-demo](./assets/images/Mayfield-Employee-Tracker-Demo.gif)
 
 ## The Generator
 
@@ -22,7 +22,7 @@ Clone the github repo to your computer. Then, initiate npm by typing ***npm init
 
 ## Usage
 
-See full-length demo at [#](#) .
+See full-length demo at [https://watch.screencastify.com/v/rdu817FqviZwCfsOHAzr](https://watch.screencastify.com/v/rdu817FqviZwCfsOHAzr) .
 
 ## Credits
 
