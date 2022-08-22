@@ -34,7 +34,7 @@ function promptUser() {
             showAllDepartments();
           }
           if (choice == "View All Roles") {
-            showAllRoles();
+            roleLib.showAllRoles();
           }
           if (choice == "View All Employees") {
             showAllEmployees();           
@@ -158,12 +158,11 @@ function addRole() {
 
 // employee table functions
 function showAllEmployees() {
-  const sql = `SELECT e.id, e.first_name, e.last_name, role.title, department.name AS department, role.salary
+  const sql = `SELECT e.id, e.first_name, e.last_name, role.title, department.name AS department, role.salary, m.first_name || ' ' || m.last_name AS manager
   FROM employee e
   LEFT JOIN role ON role_id = role.id
-  LEFT JOIN department ON department_id = department.id`
-  // ,  m.first_name || ' ' || m.last_name AS manager
-  // LEFT JOIN employee m ON e.manager_id = m.employee.id`
+  LEFT JOIN department ON department_id = department.id
+  LEFT JOIN employee m ON e.manager_id = m.id`
   db.query(sql, (err, results) => {
     if (err) {
       console.log(err);
@@ -221,6 +220,8 @@ function addEmployee() {
     }
 ])
   .then((answers) => { 
+   
+
     newEmployee.first_name = answers.first_name;
     newEmployee.last_name = answers.last_name;
     const sql = `SELECT * FROM role WHERE title = ?`;
@@ -231,6 +232,10 @@ function addEmployee() {
         }
         newEmployee.role_id = results[0].id;
       })
+
+      // if(answers.first_name == 'None') {
+      //   // return  or call next function
+      // }
       const sql2 = `SELECT * FROM employee WHERE first_name = ? AND last_name = ?`;
       const params2 = answers.manager.split(" ");
       db.query(sql2, params2, (err, results) => {
@@ -373,3 +378,5 @@ function updateEmployeeRole() {
 //   console.log(`Connected to the employee database.`);
 // });
 
+module.exports = promptUser;
+// export default promptUser;
