@@ -80,15 +80,16 @@ function addDepartment() {
       name: "name",
       message: "What is the name of the department?",
   })
+  // add input to db
     .then(input => {
       const sql = `INSERT INTO department (name) VALUES (?)`;
       db.query(sql, input.name, (err, results) => {
         if (err) {
           console.log(err);
         }
-        console.log('-------------------------------');
-        console.log(`Added ${input.name} to database`)
-        console.log('-------------------------------');
+        console.log('-----------------------------------------');
+        console.log(`Added ${input.name} to employees database`)
+        console.log('-----------------------------------------');
         return promptUser();
       })
     })
@@ -137,6 +138,7 @@ function addRole() {
       choices: departmentArr
     }
 ])
+// take input and reformat
   .then((answers) => { 
     newRole.title = answers.title;
     newRole.salary = answers.salary;
@@ -148,15 +150,16 @@ function addRole() {
         }
         newRole.department_id = results[0].id;
         const {title, salary, department_id} = newRole;
+        // add reformated data to db
         const sql = `INSERT INTO role (title, salary, department_id) VALUES (?,?,?)`;
         const params = [title, salary, department_id]
           db.query(sql, params, (err, results) => {
             if (err) {
               console.log(err);
             }
-            console.log('------------------------------');
-            console.log(`Added ${title} to database`)
-            console.log('------------------------------');
+            console.log('-------------------------------------');
+            console.log(`Added ${title} to employees database`)
+            console.log('-------------------------------------');
             return promptUser();
           })
     })
@@ -184,6 +187,7 @@ function showAllEmployees() {
 // add employee to db
 function addEmployee() {
   var rolesArr = [];
+  // query to form choices list
   db.query(`SELECT employee.first_name AS a, employee.last_name AS b FROM employee UNION ALL SELECT role.title, role.id FROM role`, (err, results) => {
     if (err) {
       console.log(err);
@@ -211,7 +215,9 @@ function addEmployee() {
         const b = mLastName[index];
         return `${a} ${b}`
     })
+    // add None as choice option
     managerArr.push("None")
+    // prompt user
   return inquirer
   .prompt([
     {
@@ -237,22 +243,19 @@ function addEmployee() {
       choices: managerArr
     }
 ])
+// take input and reformat
   .then((answers) => { 
-    console.log(answers)
     newEmployee.first_name = answers.first_name;
     newEmployee.last_name = answers.last_name;
     const sql = `SELECT * FROM role WHERE title = ?`;
     const params = [`${answers.role}`];
     db.query(sql, params, (err, results) => {
-        if (err) {
+      if (err) {
           console.log(err);
-        }
-        console.log(results)
+      }
         newEmployee.role_id = results[0].id;
-      
       if(answers.manager == 'None') {
         newEmployee.manager_id = null;
-        console.log(newEmployee)
         const {first_name, last_name, role_id, manager_id} = newEmployee;
         const sql3 = `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?,?,?,?)`;
         const params3 = [first_name, last_name, role_id, manager_id]
@@ -260,31 +263,30 @@ function addEmployee() {
             if (err) {
               console.log(err);
             }
-            console.log('----------------------------------------------------');
-            console.log(`Added ${first_name} ${last_name} to database`)
-            console.log('----------------------------------------------------');
+            console.log('------------------------------------------------------');
+            console.log(`Added ${first_name} ${last_name} to employees database`)
+            console.log('------------------------------------------------------');
             return promptUser();
           })
       } else {
       const sql2 = `SELECT * FROM employee WHERE first_name = ? AND last_name = ?`;
       const params2 = answers.manager.split(" ");
-      console.log(params)
       db.query(sql2, params2, (err, results) => {
           if (err) {
             console.log(err);
           }
           newEmployee.manager_id = results[0].id;
-          console.log(newEmployee)
           const {first_name, last_name, role_id, manager_id} = newEmployee;
+          // add to reformated data to db
           const sql3 = `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?,?,?,?)`;
-          const params3 = [first_name, last_name, role_id, manager_id]
+          const params3 = [first_name, last_name, role_id, manager_id];
             db.query(sql3, params3, (err, results) => {
               if (err) {
                 console.log(err);
               }
-              console.log('----------------------------------------------------');
-              console.log(`Added ${first_name} ${last_name} to database`)
-              console.log('----------------------------------------------------');
+              console.log('-------------------------------------------------------');
+              console.log(`Added ${first_name} ${last_name} to employees database`)
+              console.log('-------------------------------------------------------');
               return promptUser();
             })
         })
@@ -295,6 +297,7 @@ function addEmployee() {
 }
 // update employee's role
 function updateEmployeeRole() {
+  // query to form choices list
   const sql = `SELECT employee.id, employee.first_name, employee.last_name, role.title
   FROM employee 
   LEFT JOIN role ON role_id = role.id`;
@@ -318,6 +321,7 @@ function updateEmployeeRole() {
       const b = eLastName[index];
       return `${a} ${b}`
     })
+    // prompt user
     return inquirer
     .prompt([
       {
@@ -333,6 +337,7 @@ function updateEmployeeRole() {
         choices: rolesArr
       },
     ]) 
+    // take input and reformat
     .then(choice => {
       var {employee, role} = choice;
       const sql = `SELECT * FROM role WHERE title = ?`;
@@ -342,24 +347,24 @@ function updateEmployeeRole() {
           console.log(err);
         }
         const role_id = results[0].id;
-        employee = employee.split(" ")
+        employee = employee.split(" ");
         const sql2 = `SELECT id FROM employee WHERE first_name = ? AND last_name = ?`;
-        const params2 = [employee[0], employee[1]]
+        const params2 = [employee[0], employee[1]];
           db.query(sql2, params2, (err, result) => {
             if (err) {
               console.log(err);
             }
           const id = result[0].id;
+          // update db with reformated data
           const sql3 = `UPDATE employee SET role_id = ? WHERE id = ?`;
-          const params3 = [role_id, id]
-          
+          const params3 = [role_id, id];
             db.query(sql3, params3, (err, results) => {
               if (err) {
                 console.log(err);
               }
-              console.log('-------------------------------');
-              console.log(`Added ${role_id} to database`)
-              console.log('-------------------------------');
+              console.log('---------------------------------------');
+              console.log(`Added ${role_id} to employees database`)
+              console.log('---------------------------------------');
               return promptUser();
             })
           })
