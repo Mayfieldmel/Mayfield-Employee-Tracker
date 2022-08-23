@@ -3,8 +3,6 @@ const inquirer = require("inquirer");
 const mysql = require("mysql2");
 
 const db = require("./db/connection");
-const {getAllRoles} = require("./lib/Role");
-// const initialPrompt = require("./lib/Prompt");
 
 require("console.table");
 
@@ -380,5 +378,3 @@ function updateEmployeeRole() {
       })  
     })
 }
-
-module.exports = promptUser;
