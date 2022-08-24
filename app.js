@@ -3,7 +3,7 @@ const inquirer = require("inquirer");
 const mysql = require("mysql2");
 
 const db = require("./db/connection");
-// const roleLib = require("./lib/Role");
+const {showAllRoles} = require("./lib/Role");
 // const initialPrompt = require("./lib/Prompt");
 
 require("console.table");
@@ -35,7 +35,7 @@ function promptUser() {
             showAllDepartments();
           }
           if (choice == "View All Roles") {
-            showAllRoles();
+            viewRoles();
           }
           if (choice == "View All Employees") {
             showAllEmployees();           
@@ -97,17 +97,8 @@ function addDepartment() {
 
  //  role table functions
 //  view all roles in db
-function showAllRoles(){
-  const sql = `SELECT role.id, role.title, department.name AS department, CONCAT('$', FORMAT(role.salary, 0)) AS salary
-  FROM role
-  LEFT JOIN department ON role.department_id = department.id`
-  db.query(sql, (err, results) => {
-      if (err) {
-      console.log(err);
-      }
-      console.table(results);
-      promptUser()
-  })
+function viewRoles(){
+  showAllRoles().then(([results]) => console.table(results))
 }
 // add role to db
 function addRole() {
